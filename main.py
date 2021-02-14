@@ -48,7 +48,7 @@ class Form(StatesGroup):
 @dp.message_handler(commands='start')
 async def cmd_start(message: types.Message):
     await Form.first_image.set()
-    await message.reply("Привет! Пришли мне первую картинку.")
+    await message.reply("Привет! Пришли мне картинку-основу")
 
 
 # You can use state '*' if you need to handle all states
@@ -76,13 +76,13 @@ async def process_first_image(message: types.Message, state: FSMContext):
     await Form.next()
     await Form.second_image.set()
     await state.update_data(photo_1=message.photo)
-    await message.reply("Пришли вторую картинку")
+    await message.reply("Пришли мне картинку-стиль")
 
 
 # Check message. It must be an image
 @dp.message_handler(lambda message: not message.photo, state=Form.second_image)
 async def process_image_invalid(message: types.Message):
-    return await message.reply("Здесь должно быть изображение.")
+    return await message.reply("Здесь должно быть изображение")
 
 
 @dp.message_handler(state=Form.second_image, content_types=['photo'])
@@ -99,13 +99,17 @@ async def process_second_image(message: types.Message, state: FSMContext):
 
     # Configure ReplyKeyboardMarkup
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-    markup.add("первую на вторую")
+    markup.add("добавить немного стиля")
+    markup.add("добавить побольше стиля")
+    markup.add("добавить очень много стиля")
 
-    await message.reply("Какой стиль наложить на какую картинку?", reply_markup=markup)
+    await message.reply("Как много стиля добавить на картинку?", reply_markup=markup)
 
 
 @dp.message_handler(state=Form.what_to_do)
 async def select_operation(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        how_much_style = message.text
     # Remove keyboard
     markup = types.ReplyKeyboardRemove()
 
@@ -116,7 +120,7 @@ async def select_operation(message: types.Message, state: FSMContext):
         reply_markup=markup,
         parse_mode=ParseMode.MARKDOWN,
     )
-    style_changer.make_style_transfer()
+    style_changer.make_style_transfer(how_much_style)
 
     await bot.send_photo(
         message.chat.id,

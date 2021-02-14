@@ -19,12 +19,11 @@ else:
     device = torch.device("cuda")
 # Предустановка настроек и запуск функции
 unloader = transforms.ToPILImage()
-content_layers_default = 'conv_4'
-style_layers_default = ('conv_1', 'conv_2', 'conv_3', 'conv_5')
+content_layers_default = ['conv_4']
+style_layers_default = ['conv_1', 'conv_2', 'conv_3', 'conv_4', 'conv_5']
 content_image_name = 'photo1'
 style_image_name = 'photo2'
-n_iter = 300
-style_weight = 50000
+n_iter = 800
 content_weight = 1
 target_resolution = ()
 
@@ -328,8 +327,16 @@ def do_transfer2(content_image_name1, style_image_name11, style_weight1, content
     # return make_global_image(output, content_image_name1, style_image_name11, style_image_name21)
 
 
-def make_style_transfer():
-    result_image = do_transfer2(content_image_name, style_image_name,
-                                style_weight, content_weight)
+def make_style_transfer(how_much_style):
+    style_weight1 = 100000
+    if how_much_style == "добавить немного стиля":
+        style_weight1 = 20000
+    if how_much_style == "добавить побольше стиля":
+        style_weight1 = 100000
+    if how_much_style == "добавить очень много стиля":
+        style_weight1 = 500000
+
+    result_image = do_transfer2(style_image_name, content_image_name,
+                                style_weight1, content_weight)
     # show_image(result_image)
     unloader(result_image.cpu().clone().squeeze(0)).save(fp=f'images/result.jpg')
